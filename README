@@ -1,0 +1,8 @@
+dualmonitorbackgrounds.com Downloader
+=====================================
+
+Use this script to download all the content from http://www.dualmonitorbackgrounds.com/
+
+After running the script, all the wallpapers should be in folders named after the sections they were in.
+
+Only works in Windows for now.
