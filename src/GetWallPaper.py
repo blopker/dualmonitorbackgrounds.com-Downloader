@@ -27,11 +27,11 @@ for section in sections: #Do this for each section in the list.
             print "Section done."
             break; #Pop out of the while loop.
         for name in imagenames: #Do this for each image name.
-            if os.path.isfile(section+"\\"+name+".jpg"): #If the file is already there, skip it.
-                print "File " + section+"\\"+name+".jpg" + " exists. Skipping."
+            if os.path.isfile(section+os.sep+name+".jpg"): #If the file is already there, skip it.
+                print "File " + section+os.sep+name+".jpg" + " exists. Skipping."
                 continue
             print "Getting picture " + name + ".jpg"
             imagelocation = "http://www.dualmonitorbackgrounds.com/albums/"+section+"/"+name+".jpg" #Create the final URL with the image name.
-            urllib.urlretrieve(imagelocation,section+"\\"+name+".jpg") #Download and save the image in its section's folder.
+            urllib.urlretrieve(imagelocation,section+os.sep+name+".jpg") #Download and save the image in its section's folder.
         pagenumber += 1 #Add one to the page number counter.
 print "All done. Enjoy!"
