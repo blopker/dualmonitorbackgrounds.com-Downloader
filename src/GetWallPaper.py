@@ -1,37 +1,88 @@
-import urllib #URL library
-import re #Regular Expression
-import os #OS System library
-
+import urllib
+import re
+import os
 #sections = ["anime","abstract","animals","astronomy","computers",
 #            "crafted-nature","gaming","celebrities","industrial","macabre",
-#            "microscopic","mobile-technology","music","nature",
+#            "microscopic","music","nature",
 #            "popular-culture","science-fiction","sports","vehicles"] #A list of all the site's sections.
 
-sections = ["anime","abstract","animals","astronomy","computers", #An edited list for the sections I want.
-            "crafted-nature","celebrities","industrial","macabre",
-            "microscopic","music","nature"
-            ,"science-fiction","sports","vehicles"] #A list of all the site's sections.
+sections = ["abstract", "animals", "astronomy", "computers",  # An edited list for the sections I want.
+            "crafted-nature", "celebrities", "industrial", "macabre",
+            "microscopic", "music", "nature", "science-fiction", "sports", "vehicles"]  # A list of all the site's sections.
 
-for section in sections: #Do this for each section in the list.
-    print "Starting section " + section
-    if not os.path.exists(section): #Makes a new folder for the section if one doesn't exist.
+index = "http://dualmonitorbackgrounds.com/"
+
+size = ("3840", "1200")
+
+WORKERS = 10
+
+subfolders = False
+
+
+# Makes a new folder if one doesn't exist.
+def makeDir(section):
+    if not subfolders:
+        return
+    if not os.path.exists(section):
         print "Folder: " + section + " not found. Creating folder."
         os.makedirs(section)
-    pagenumber = 1 #Keeps track of the page number for each section.
-    while True: #Do this for as long as the page has wallpapers on it.
-        url = "http://www.dualmonitorbackgrounds.com/" + section + "/" + "page" + "/" + str(pagenumber) + "/" #Formatted URL root (string)
-        site = urllib.urlopen(url) #Create a site object.
-        find = "/" + section + "/" + "(.+)\.jpg\.php" #Creates a regular expression 'search term' 
-        imagenames = re.findall(find,site.read()) #Opens the URL and searches the source code for search terms matches. imagenames is a list of images found.
-        if len(imagenames) == 0: #If no images were found, we are on the last page. Move on to the next section.
-            print "Section done."
-            break; #Pop out of the while loop.
-        for name in imagenames: #Do this for each image name.
-            if os.path.isfile(section+os.sep+name+".jpg"): #If the file is already there, skip it.
-                print "File " + section+os.sep+name+".jpg" + " exists. Skipping."
-                continue
-            print "Getting picture " + name + ".jpg"
-            imagelocation = "http://www.dualmonitorbackgrounds.com/albums/"+section+"/"+name+".jpg" #Create the final URL with the image name.
-            urllib.urlretrieve(imagelocation,section+os.sep+name+".jpg") #Download and save the image in its section's folder.
-        pagenumber += 1 #Add one to the page number counter.
-print "All done. Enjoy!"
+
+
+def getHTML(url):
+    return urllib.urlopen(url).read()
+
+
+def getImageNameList(section, page):
+    url = index + section + "/page/" + str(page)
+    html = getHTML(url)
+    print url
+    find = "/" + section + "/" + "(.+)\.jpg\.php"
+    return list(set(re.findall(find, html)))
+
+
+def getMaxPage(section):
+    html = getHTML(index + section)
+    find = "/{0}/page/(\d+)/".format(section)
+    return max([int(x) for x in re.findall(find, html)])
+
+
+def fileExists(section, name):
+    return os.path.isfile(getImagePath(section, name))
+
+
+def getImageFilename(name):
+    return "{0}_w{1}_h{2}_cw{1}_ch{2}.jpg".format(name, size[0], size[1])
+
+
+def getImagePath(section, name):
+    if subfolders:
+        return section + os.sep + getImageFilename(name)
+    else:
+        return getImageFilename(name)
+
+
+def getImageURL(section, name):
+    return "{0}cache/{1}/{2}".format(index, section, getImageFilename(name))
+
+
+def saveImage(section, name):
+    if fileExists(section, name):
+        print name + " exists. Skipping."
+        return
+    print "Getting picture " + name
+    urllib.urlretrieve(getImageURL(section, name), getImagePath(section, name))
+
+
+def main():
+    for section in sections:
+        print "Starting section " + section
+        makeDir(section)
+        for page_number in xrange(1, getMaxPage(section)):
+            imagenames = getImageNameList(section, page_number)
+            for name in imagenames:
+                saveImage(section, name)
+        print "Section done."
+    print "All done. Enjoy!"
+
+if __name__ == '__main__':
+    main()
